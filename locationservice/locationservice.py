@@ -39,11 +39,11 @@ def venue_registration():
     print(venue)
     gps_long = payload['gps_long']    
     #Insert into VENUE table
-    if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
-        # This is successful
-        # TODO make the response
-    else:
-        #Unsuccessful
+    # if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
+    #     # This is successful
+    #     # TODO make the response
+    # else:
+    #     #Unsuccessful
 
     return 'Venue registation'
 
