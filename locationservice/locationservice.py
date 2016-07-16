@@ -1,23 +1,20 @@
 import os
 import http.client, urllib.parse
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-    render_template, flash, make_response, jsonify
+    render_template, jsonify
 import locationservice.dbconns as dbconns
 import requests
+
 # create our little application :)
 app = Flask(__name__)
 
 # Load default config and override config from an environment variable
 app.config.update(dict(
-    # DATABASE=os.path.join(app.root_path, 'flaskr.db'),
     DEBUG=True,
     SECRET_KEY='development key',
     USERNAME='admin',
     PASSWORD='default'
 ))
-
-# Is this needed?
-app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 find_server_address = "ml.internalpositioning.com"
 # find_server_port = "80"
@@ -39,13 +36,13 @@ def venue_registration():
     print(venue)
     gps_long = payload['gps_long']    
     #Insert into VENUE table
-    # if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
-    #     # This is successful
-    #     # TODO make the response
-    # else:
-    #     #Unsuccessful
+    if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
+        # This is successful
+        response = jsonify({"success": True})
+    else:
+        response = jsonify({"success": False})
 
-    return 'Venue registation'
+    return response
 
 @app.route('/learn', methods=['POST'])
 def learn():
@@ -67,9 +64,8 @@ def learn():
 
     r = requests.post("https://" + find_server_address + find_server_learn_route, json=find_learn_payload)
     print(r.json())
-    resp = make_response(r.json())
-    resp.headers['Content-Type'] = "application/json"
-    return resp
+   
+    return jsonify(r.json())
 
 @app.route('/getVenueForGPS', methods=['POST'])
 def get_venue_for_gps():
@@ -80,10 +76,10 @@ def get_venue_for_gps():
 
     # Query VENUE Table
     venues = dbconns.get_venue_for_gps(gps_lat, gps_long)
-    # TODO make the response
+    response = jsonify(items=venues)
 
     # Return venue
-    return 'Get Venue For GPS'
+    return response
 
 @app.route('/track', methods=['POST'])
 def track():
@@ -104,6 +100,5 @@ def track():
     # Get location from response
 
     # Query DB for coupon code and return
-    resp = make_response(r.json())
-    resp.headers['Content-Type'] = "application/json"
-    return resp
+
+    return jsonify(r.json())
