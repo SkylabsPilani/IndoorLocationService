@@ -2,6 +2,7 @@ import os
 import http.client, urllib.parse
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
+import locationservice.dbconns as dbconns
 
 # create our little application :)
 app = Flask(__name__)
@@ -42,6 +43,11 @@ def venue_registration():
     gps_long = payload['gps_long']    
 
     #Insert into VENUE table
+    if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
+        # This is successful
+        # TODO make the response
+    else:
+        #Unsuccessful
 
     return 'Venue registation'
 
@@ -76,6 +82,8 @@ def get_venue_for_gps():
     gps_long = payload['gps_long']
 
     # Query VENUE Table
+    venues = dbconns.get_venue_for_gps(gps_lat, gps_long)
+    # TODO make the response
 
     # Return venue
 
