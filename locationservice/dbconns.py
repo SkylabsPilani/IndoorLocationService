@@ -3,6 +3,9 @@ import json
 
 dynamodb = boto3.resource('dynamodb')
 gps_venue_table = dynamodb.Table('GPSVenues')
+gps_location_table = dynamodb.Table('GPSLocationCode')
+gps_location_table_key = 'GPSCoordiantesVenueLocation'
+gps_location_table_code_key = 'Code'
 gps_venue_table_key = 'GPSCoordinates'
 gps_venue_table_venue_key = 'Venues'
 
@@ -15,7 +18,7 @@ def __get_gps_venues__(gps_coordinates):
     gps_dict = {gps_venue_table_key:gps_coordinates}
     response = gps_venue_table.get_item(Key=gps_dict)
     try:
-        venues = json.loads(json.dumps(response['Item']))['Venues']
+        venues = json.loads(json.dumps(response['Item']))[gps_venue_table_venue_key]
     except KeyError:
         venues = None
 
@@ -44,4 +47,28 @@ def get_gps_venues(gps_lat, gps_lon):
 
 def put_venue_for_gps(gps_lat, gps_lon, venue):
     return __put_venue_for_gps__(__normalize_coordinates__(gps_lat, gps_lon), venue)
+
+
+def get_code_for_location(gps_lat, gps_lon, venue, location):
+    gps_coordinates = __normalize_coordinates__(gps_lat, gps_lon)
+    gps_dict = {gps_location_table_key: gps_coordinates + venue + location}
+    response = gps_location_table.get_item(Key=gps_dict)
+    try:
+        code = json.loads(json.dumps(response['Item']))[gps_location_table_code_key]
+    except KeyError:
+        code = None
+
+    return code
+
+
+def put_code_for_location(gps_lat, gps_lon, venue, location, code):
+    gps_coordinates = __normalize_coordinates__(gps_lat, gps_lon)
+    gps_dict = {gps_location_table_key: gps_coordinates + venue + location, gps_location_table_code_key: code}
+    if gps_location_table.put_item(Item=gps_dict)['ResponseMetadata']['HTTPStatusCode'] == 200:
+        return True
+    else:
+        return False
+
+
+
 
