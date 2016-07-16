@@ -116,3 +116,6 @@ def track():
 
     return jsonify(coupon_code=coupon_code,
                    location=location)
+
+if __name__ == '__main__':
+    app.run()
