@@ -3,9 +3,10 @@ import http.client, urllib.parse
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
-
 # create our little application :)
 app = Flask(__name__)
+
+app.run(host='0.0.0.0')
 
 """ WTF IS THIS BLOCK """
 # Load default config and override config from an environment variable
@@ -16,6 +17,8 @@ app.config.update(dict(
     USERNAME='admin',
     PASSWORD='default'
 ))
+
+# Is this needed?
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 """ end of WTF IS THIS BLOCK """
@@ -30,27 +33,75 @@ find_server_track_route = "/track"
 def index():
     return 'Hello, World'
 
+@app.route('/venueReg', methods=['POST'])
+def venue_registration():
+    payload = request.form['data']
+
+    venue = payload['venue']
+    gps_lat = payload['gps_lat']
+    gps_long = payload['gps_long']    
+
+    #Insert into VENUE table
+
+    return 'Venue registation'
+
 @app.route('/learn', methods=['POST'])
 def learn():
     if find_server_protocol == "http" :
-        # server_connection = http.client.HTTPConnection(find_server_address, find_server_port)
         server_connection = http.client.HTTPConnection(find_server_address)
     elif find_server_protocol == "https" :
-        # server_connection = http.client.HTTPSConnection(find_server_address, find_server_port)
         server_connection = http.client.HTTPSConnection(find_server_address)
 
-    fingerprint = request.form['fingerprint']
+    # Parse payload
+    payload = request.form['data']
+    find_learn_payload = payload['find_payload']
+    group = find_learn_payload['group']
+    location = find_learn_payload['location']
+    coupon_code = payload['coupon_code']
 
-    params = urllib.parse.urlencode({'dataType': "json", 'data': fingerprint})
+    # Make DB Entry (without duplicating)
 
-    server_connection.request("POST", find_server_learn_route, params)
+    # Construct call for learn to public server
+    server_connection.request("POST", find_server_learn_route, find_payload)
+    server_response = server_connection.getresponse()
+    print(server_response.status, server_response.read())
+    server_connection.close()
+    return 'Learning'
+
+@app.route('/getVenueForGPS')
+def get_venue_for_gps():
+    payload = request.form['data']
+
+    gps_lat = payload['gps_lat']
+    gps_long = payload['gps_long']
+
+    # Query VENUE Table
+
+    # Return venue
+
+    return 'Get Venue For GPS'
+
+@app.route('/track')
+def track():
+    if find_server_protocol == "http" :
+        server_connection = http.client.HTTPConnection(find_server_address)
+    elif find_server_protocol == "https" :
+        server_connection = http.client.HTTPSConnection(find_server_address)
+
+    # Parse payload
+    payload = request.form['data']
+    find_track_payload = payload['find_payload']
+    group = find_track_payload['group']
+
+    # Construct call for track to public server
+    server_connection.request("POST", find_server_track_route, find_track_payload)
     server_response = server_connection.getresponse()
     print(server_response.status, server_response.read())
     server_connection.close()
 
+    # Get location from response
 
-    return 'Hello, World'
+    # Query DB for coupon code and return
+    return 'Tracking'
 
-"""@app.route('/track')
-def train():"""
 
