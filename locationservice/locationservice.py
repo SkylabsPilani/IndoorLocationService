@@ -107,7 +107,7 @@ def learn():
                       json=find_learn_payload)
     print(r.json())
     learn_response = r.json()
-    findlog(["LEARN", learn_response["success"], learn_response["message"]])
+    findlog(["LEARN", learn_response["message"]])
     if learn_response['success']:
         responselog(["SUCCESS", "LEARN", venue, find_learn_payload["username"], location])
         dbconns.put_code_for_location(gps_lat, gps_long, venue, location, coupon_code)
@@ -159,7 +159,7 @@ def track():
     print(r.json())
 
     track_response = r.json()
-    findlog(["TRACK", track_response["success"], track_response["location"]])
+    findlog(["TRACK",  track_response["message"]])
 
     success = track_response["success"]
     if success:
