@@ -60,13 +60,15 @@ def learn():
     coupon_code = payload["coupon_code"]
     print("coupon_code" + coupon_code)
     # Make DB Entry (without duplicating)
-    dbconns.put_code_for_location(gps_lat, gps_long, venue, location, coupon_code)
 
     # Construct call for learn to public server
     r = requests.post("https://" + FIND_server_address + "/learn",
                       json=find_learn_payload)
     print(r.json())
     learn_response = r.json()
+    if learn_response['success']:
+        dbconns.put_code_for_location(gps_lat, gps_long, venue, location, coupon_code)
+
     return jsonify(learn_response)
 
 @app.route("/getVenueForGPS", methods=["POST"])
