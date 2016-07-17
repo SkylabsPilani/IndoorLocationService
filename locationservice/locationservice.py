@@ -106,7 +106,7 @@ def track():
     track_response = r.json()
 
     success = track_response["success"]
-    if success == "true":
+    if success:
         # Get location from response
         group_list = group.split("_")
         venue = group_list[0]
@@ -121,7 +121,7 @@ def track():
     else:
         response = jsonify(coupon_code="",
                            location="Not_found")
-        
+
     return response
 
 if __name__ == '__main__':
