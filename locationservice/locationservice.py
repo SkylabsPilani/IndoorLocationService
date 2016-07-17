@@ -104,18 +104,25 @@ def track():
     print(r.json())
 
     track_response = r.json()
-    # Get location from response
-    group_list = group.split("_")
-    venue = group_list[0]
-    gps_lat = float(group_list[1])
-    gps_long = float(group_list[2])
-    location = track_response["location"]
 
-    # Query DB for coupon code and return
-    coupon_code = dbconns.get_code_for_location(gps_lat, gps_long, venue, location)
+    success = track_response["success"]
+    if success == "true":
+        # Get location from response
+        group_list = group.split("_")
+        venue = group_list[0]
+        gps_lat = float(group_list[1])
+        gps_long = float(group_list[2])
+        location = track_response["location"]
 
-    return jsonify(coupon_code=coupon_code,
-                   location=location)
+        # Query DB for coupon code and return
+        coupon_code = dbconns.get_code_for_location(gps_lat, gps_long, venue, location)
+        response = jsonify(coupon_code=coupon_code,
+                           location=location)
+    else:
+        response = jsonify(coupon_code="",
+                           location="Not_found")
+        
+    return response
 
 if __name__ == '__main__':
     app.run()
