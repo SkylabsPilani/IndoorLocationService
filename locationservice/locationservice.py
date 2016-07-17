@@ -129,7 +129,10 @@ def get_venue_for_gps():
     venues = dbconns.get_gps_venues(gps_lat, gps_long)
     print(venues)
     response = jsonify(items=venues)
-    responselog(venues.insert(0, "GETVENUE"))
+    if venues is not None:
+        responselog(venues.insert(0, "GETVENUE"))
+    else:
+        responselog(["GETVENUE"])
 
     # Return venue
     return response
