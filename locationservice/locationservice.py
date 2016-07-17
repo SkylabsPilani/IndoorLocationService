@@ -130,7 +130,8 @@ def get_venue_for_gps():
     print(venues)
     response = jsonify(items=venues)
     if venues is not None:
-        responselog(venues.insert(0, "GETVENUE"))
+        venues.insert(0, "GETVENUE")
+        responselog(venues)
     else:
         responselog(["GETVENUE"])
 
