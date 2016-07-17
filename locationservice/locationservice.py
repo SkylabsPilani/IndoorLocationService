@@ -13,6 +13,43 @@ app.config.update(dict(
     PASSWORD="default"
 ))
 
+responselogfile = "response.log"
+requestlogfile = "request.log"
+findlogfile = "find.log"
+logfile = "debug.log"
+
+def responselog(strings):
+    file = open(responselogfile, "w+")
+    debuglog = open(logfile, "w+")
+    file.write("   ".join(strings))
+    strings.insert(0, "RESPONSE")
+    debuglog.write("   ".join(strings))
+    file.close()
+    debuglog.close()
+
+
+def requestlog(strings):
+    file = open(responselogfile, "w+")
+    debuglog = open(logfile, "w+")
+    file.write("   ".join(strings))
+    strings.insert(0, "REQUEST")
+    debuglog.write("   ".join(strings))
+    file.close()
+    debuglog.close()
+    # asdf
+
+
+def findlog(strings):
+    file = open(responselogfile, "w+")
+    debuglog = open(logfile, "w+")
+    file.write("   ".join(strings))
+    strings.insert(0, "FINDSERVER")
+    debuglog.write("   ".join(strings))
+    file.close()
+    debuglog.close()
+    # asdf
+
+
 FIND_server_address = "ml.internalpositioning.com"
 # find_server_port = "80"
 
@@ -30,10 +67,13 @@ def venue_registration():
     gps_lat = payload["gps_lat"]
     gps_long = payload["gps_long"]
     #Insert into VENUE table
+    requestlog(["VENUEREG", venue])
     if dbconns.put_venue_for_gps(gps_lat, gps_long, venue):
         # This is successful
         response = jsonify({"success": True})
+        responselog(["SUCCESS", "VENUEREG", venue])
     else:
+        responselog(["FAILURE", "VENUEREG", venue])
         response = jsonify({"success": False})
 
     return response
@@ -59,6 +99,7 @@ def learn():
 
     coupon_code = payload["coupon_code"]
     print("coupon_code" + coupon_code)
+    requestlog(["LEARN", venue, find_learn_payload["username"], location])
     # Make DB Entry (without duplicating)
 
     # Construct call for learn to public server
@@ -66,8 +107,12 @@ def learn():
                       json=find_learn_payload)
     print(r.json())
     learn_response = r.json()
+    findlog(["LEARN", learn_response["success"], learn_response["message"]])
     if learn_response['success']:
+        responselog(["SUCCESS", "LEARN", venue, find_learn_payload["username"], location])
         dbconns.put_code_for_location(gps_lat, gps_long, venue, location, coupon_code)
+    else:
+        responselog(["FAILURE", "LEARN", venue, find_learn_payload["username"], location])
 
     return jsonify(learn_response)
 
@@ -75,6 +120,7 @@ def learn():
 def get_venue_for_gps():
     """Query VENUE table and return list of venues for GPS location"""
     payload = request.get_json()
+    requestlog(["GETVENUE"])
 
     gps_lat = payload["gps_lat"]
     gps_long = payload["gps_long"]
@@ -83,6 +129,7 @@ def get_venue_for_gps():
     venues = dbconns.get_gps_venues(gps_lat, gps_long)
     print(venues)
     response = jsonify(items=venues)
+    responselog(venues.insert(0, "GETVENUE"))
 
     # Return venue
     return response
@@ -99,6 +146,8 @@ def track():
     payload = request.get_json()
     find_track_payload = payload["find_payload"]
     group = find_track_payload["group"]
+    requestlog(["TRACK", group, find_track_payload["username"]])
+
 
     # Construct call for track to public server
     r = requests.post("https://" + FIND_server_address + "/track",
@@ -106,6 +155,7 @@ def track():
     print(r.json())
 
     track_response = r.json()
+    findlog(["TRACK", track_response["success"], track_response["location"]])
 
     success = track_response["success"]
     if success:
@@ -118,9 +168,11 @@ def track():
 
         # Query DB for coupon code and return
         coupon_code = dbconns.get_code_for_location(gps_lat, gps_long, venue, location)
+        responselog(["SUCCESS", "TRACK", find_track_payload["username"], group, location, coupon_code])
         response = jsonify(coupon_code=coupon_code,
                            location=location)
     else:
+        responselog(["FAILURE", "TRACK", find_track_payload["username"], group])
         response = jsonify(coupon_code="",
                            location="Not_found")
 
